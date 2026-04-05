@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Login.dart';
+import 'MonthlyInvoicePage.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -639,21 +640,16 @@ class _SettingsPageState extends State<SettingsPage> {
                   children: [
                     const Divider(height: 1),
                     ListTile(
-                      leading: const Icon(
-                          Icons.receipt_long_outlined,
+                      leading: const Icon(Icons.receipt_long_outlined,
                           color: Colors.grey),
                       title: const Text("វិក្កយបត្រខែនេះ"),
-                      trailing: const Icon(
-                          Icons.arrow_forward_ios, size: 14),
-                      onTap: () {},
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.history,
-                          color: Colors.grey),
-                      title: const Text("ប្រវត្តិវិក្កយបត្រ"),
-                      trailing: const Icon(
-                          Icons.arrow_forward_ios, size: 14),
-                      onTap: () {},
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MonthlyInvoicePage(),
+                        ),
+                      ),
                     ),
                   ],
                 ),
