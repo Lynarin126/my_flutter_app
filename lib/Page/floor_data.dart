@@ -1,24 +1,48 @@
 // lib/Page/floor_data.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FloorData {
-  // Singleton - ធានាថាមាន Instance តែមួយ Share គ្រប់ Page
+  // Singleton Pattern
   static final FloorData _instance = FloorData._internal();
   factory FloorData() => _instance;
   FloorData._internal();
 
-  // List ជាន់ Share គ្រប់ Page
-  List<Floor> floors = [
-    Floor(title: "ជាន់ ទី១១", roomCount: "១ បន្ទប់"),
-    Floor(title: "ជាន់ ទី១០", roomCount: "១ បន្ទប់"),
-    Floor(title: "ជាន់ ទី៩",  roomCount: "១ បន្ទប់"),
-    Floor(title: "ជាន់ ទី៨",  roomCount: "១ បន្ទប់"),
-    Floor(title: "ជាន់ ទី៧",  roomCount: "១ បន្ទប់"),
-    Floor(title: "ជាន់ ទី៦",  roomCount: "១ បន្ទប់"),
-  ];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Stream<List<Floor>> getFloorsStream() {
+    return _firestore.collection('floors').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Floor(
+          id: doc.id,
+          title: data['name'] ?? data['title'] ?? 'មិនស្គាល់ជាន់',
+          roomCount: "${data['roomCount'] ?? 0} បន្ទប់",
+        );
+      }).toList();
+    });
+  }
+
+  Future<List<Floor>> getFloorsOnce() async {
+    final snapshot = await _firestore.collection('floors').get();
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      return Floor(
+        id: doc.id,
+        title: data['name'] ?? data['title'] ?? 'មិនស្គាល់ជាន់',
+        roomCount: "${data['roomCount'] ?? 0} បន្ទប់",
+      );
+    }).toList();
+  }
 }
 
 class Floor {
-  String title;
-  String roomCount;
-  Floor({required this.title, required this.roomCount});
+  final String id;
+  final String title;
+  final String roomCount;
+
+  Floor({
+    required this.id,
+    required this.title,
+    required this.roomCount,
+  });
 }

@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
-import 'Page/Login.dart'; // Import ទៅកាន់ Login.dart
+import 'Page/Login.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() => runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -39,7 +47,10 @@ class WelcomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 30),
             const Text("ប្រព័ន្ធគ្រប់គ្រងការជួលបន្ទប់",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontSize: 22,
+                    fontFamily: 'Fasthand',
+                    fontWeight: FontWeight.w900,
+                    )),
             const SizedBox(height: 40),
             ElevatedButton(
               style: ElevatedButton.styleFrom(

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'floor_data.dart';
 
 class AddTenantPage extends StatefulWidget {
   const AddTenantPage({super.key});
@@ -27,11 +29,26 @@ class _AddTenantPageState extends State<AddTenantPage> {
   bool hasOther = true;
 
   final List<String> genders = ["ប្រុស", "ស្រី"];
-  final List<String> floors = [
-    "ជាន់ ទី៦", "ជាន់ ទី៧", "ជាន់ ទី៨",
-    "ជាន់ ទី៩", "ជាន់ ទី១០", "ជាន់ ទី១១"
-  ];
+
+  List<String> floors = [];
   final List<String> rooms = ["001", "002", "003", "004", "005"];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFloorsFromFirebase();
+  }
+
+  Future<void> _loadFloorsFromFirebase() async {
+    try {
+      final fetchedFloors = await FloorData().getFloorsOnce();
+      setState(() {
+        floors = fetchedFloors.map((floor) => floor.title).toList();
+      });
+    } catch (e) {
+      print("Error loading floors: $e");
+    }
+  }
 
   // ============================
   // DatePicker
@@ -40,7 +57,7 @@ class _AddTenantPageState extends State<AddTenantPage> {
     final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
+      firstDate: DateTime(2026),
       lastDate: DateTime(2030),
       builder: (context, child) => Theme(
         data: ThemeData(
@@ -123,10 +140,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-              // ============================
-              // ឈ្មោះពេញ
-              // ============================
               _buildLabel("ឈ្មោះពេញ"),
               TextFormField(
                 controller: nameController,
@@ -139,9 +152,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
               ),
               const SizedBox(height: 14),
 
-              // ============================
-              // លេខទូរស័ព្ទ
-              // ============================
               _buildLabel("លេខទូរស័ព្ទ"),
               TextFormField(
                 controller: phoneController,
@@ -155,9 +165,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
               ),
               const SizedBox(height: 14),
 
-              // ============================
-              // កាលបរិច្ឆេទចូលស្នាក់នៅ
-              // ============================
               _buildLabel("កាលបរិច្ឆេទចូលស្នាក់នៅ"),
               GestureDetector(
                 onTap: _pickDate,
@@ -192,9 +199,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
               ),
               const SizedBox(height: 14),
 
-              // ============================
-              // ភេទ
-              // ============================
               _buildLabel("ភេទ"),
               _buildDropdown(
                 hint: "ជ្រើសរើសភេទ",
@@ -206,9 +210,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
               ),
               const SizedBox(height: 14),
 
-              // ============================
-              // អាសយដ្ឋាន
-              // ============================
               _buildLabel("អាសយដ្ឋាន"),
               TextFormField(
                 controller: addressController,
@@ -219,11 +220,15 @@ class _AddTenantPageState extends State<AddTenantPage> {
               ),
               const SizedBox(height: 14),
 
-              // ============================
-              // ជាន់
-              // ============================
               _buildLabel("ជាន់"),
-              _buildDropdown(
+              floors.isEmpty
+                  ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: CircularProgressIndicator(color: Color(0xFF27AE60)),
+                ),
+              )
+                  : _buildDropdown(
                 hint: "ជ្រើសរើសជាន់",
                 value: selectedFloor,
                 items: floors,
@@ -233,9 +238,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
               ),
               const SizedBox(height: 14),
 
-              // ============================
-              // លេខបន្ទប់
-              // ============================
               _buildLabel("លេខបន្ទប់"),
               _buildDropdown(
                 hint: "ជ្រើសរើសលេខបន្ទប់",
@@ -247,9 +249,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
               ),
               const SizedBox(height: 14),
 
-              // ============================
-              // តម្លៃជួលប្រចាំខែ
-              // ============================
               _buildLabel("តម្លៃជួលប្រចាំខែ"),
               TextFormField(
                 controller: rentController,
@@ -263,9 +262,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
               ),
               const SizedBox(height: 14),
 
-              // ============================
-              // កម្រៃប្រើប្រាស់សេវាកម្ម
-              // ============================
               _buildLabel("កម្រៃប្រើប្រាស់សេវាកម្ម"),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -304,9 +300,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
               ),
               const SizedBox(height: 14),
 
-              // ============================
-              // តម្លៃដាក់ប្រាក់បញ្ញើ
-              // ============================
               _buildLabel("តម្លៃដាក់ប្រាក់បញ្ញើ"),
               TextFormField(
                 controller: depositController,
@@ -318,29 +311,58 @@ class _AddTenantPageState extends State<AddTenantPage> {
               ),
               const SizedBox(height: 24),
 
-              // ============================
-              // Save Button
-              // ============================
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF27AE60),
-                    padding:
-                    const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("បានរក្សាទុកដោយជោគជ័យ!"),
-                          backgroundColor: Color(0xFF27AE60),
-                        ),
-                      );
-                      Navigator.pop(context);
+                      try {
+                        await FirebaseFirestore.instance.collection('tenants').add({
+                          'name': nameController.text.trim(),
+                          'phone': phoneController.text.trim(),
+                          'check_in_date': selectedDate != null
+                              ? Timestamp.fromDate(selectedDate!)
+                              : null,
+                          'gender': selectedGender,
+                          'address': addressController.text.trim(),
+                          'floor': selectedFloor,
+                          'roomNumber': selectedRoom,
+                          'rent': double.tryParse(rentController.text.trim()) ?? 0.0,
+                          'paymentStatus': 'unpaid',
+                          'avatarColor': 0xFF27AE60,
+                          'services': {
+                            'electricity': hasElectricity,
+                            'water': hasWater,
+                            'wifi': hasWifi,
+                            'other': hasOther,
+                          },
+                          'deposit': double.tryParse(depositController.text.trim()) ?? 0.0,
+                          'created_at': FieldValue.serverTimestamp(),
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("បានរក្សាទុកអតិថិជនថ្មីដោយជោគជ័យ!"),
+                            backgroundColor: Color(0xFF27AE60),
+                          ),
+                        );
+
+                        Navigator.pop(context);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("មានបញ្ហាក្នុងការរក្សាទុក៖ $e"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   },
                   child: const Text(
@@ -352,7 +374,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
             ],
           ),
@@ -361,9 +382,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
     );
   }
 
-  // ============================
-  // Label Widget
-  // ============================
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
@@ -375,9 +393,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
     );
   }
 
-  // ============================
-  // Dropdown Widget
-  // ============================
   Widget _buildDropdown({
     required String hint,
     required String? value,
@@ -418,9 +433,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
     );
   }
 
-  // ============================
-  // Checkbox Widget
-  // ============================
   Widget _buildCheckbox(
       String label, bool value, ValueChanged<bool?> onChanged) {
     return Column(
